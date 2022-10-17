@@ -31,6 +31,7 @@ void CImageViewerDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CImageViewerDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_BN_CLICKED(IDC_SELECT_BTN, &CImageViewerDlg::OnBnClickedSelectBtn)
 END_MESSAGE_MAP()
 
 
@@ -45,7 +46,7 @@ BOOL CImageViewerDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 큰 아이콘을 설정합니다.
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
-	// TODO: 여기에 추가 초기화 작업을 추가합니다.
+	GetClientRect(m_rect);
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -56,10 +57,9 @@ BOOL CImageViewerDlg::OnInitDialog()
 
 void CImageViewerDlg::OnPaint()
 {
+	CPaintDC dc(this); // 그리기를 위한 디바이스 컨텍스트입니다.
 	if (IsIconic())
 	{
-		CPaintDC dc(this); // 그리기를 위한 디바이스 컨텍스트입니다.
-
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
 		// 클라이언트 사각형에서 아이콘을 가운데에 맞춥니다.
@@ -75,7 +75,12 @@ void CImageViewerDlg::OnPaint()
 	}
 	else
 	{
-		CDialogEx::OnPaint();
+		if(!m_image.IsNull())
+		{
+			dc.SetStretchBltMode(COLORONCOLOR);
+			m_image.Draw(dc, m_rect);
+		}
+		//CDialogEx::OnPaint();
 	}
 }
 
@@ -86,3 +91,19 @@ HCURSOR CImageViewerDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+
+void CImageViewerDlg::OnBnClickedSelectBtn()
+{
+	wchar_t name_filter[] = L"모든 파일 (*.*)|*.*|Jpeg 파일 (*.jpg)|*.jpg|PNG 파일 (*.png)|*.png||";
+	
+	// 파일 열기 대화상자를 CFileDIalog에서 제공하고있음
+	CFileDialog ins_dlg(TRUE, L"jpg",L"*.jpg", OFN_HIDEREADONLY | OFN_NOCHANGEDIR, name_filter); 
+	ins_dlg.m_ofn.nFilterIndex = 2;
+	
+	if (IDOK == ins_dlg.DoModal())
+	{
+		m_image.Load(ins_dlg.GetPathName());
+		Invalidate(FALSE);
+	}
+}
