@@ -32,6 +32,7 @@ BEGIN_MESSAGE_MAP(CImageViewerDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_SELECT_BTN, &CImageViewerDlg::OnBnClickedSelectBtn)
+	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 
@@ -98,12 +99,25 @@ void CImageViewerDlg::OnBnClickedSelectBtn()
 	wchar_t name_filter[] = L"모든 파일 (*.*)|*.*|Jpeg 파일 (*.jpg)|*.jpg|PNG 파일 (*.png)|*.png||";
 	
 	// 파일 열기 대화상자를 CFileDIalog에서 제공하고있음
-	CFileDialog ins_dlg(TRUE, L"jpg",L"*.jpg", OFN_HIDEREADONLY | OFN_NOCHANGEDIR, name_filter); 
+	CFileDialog ins_dlg(TRUE, L"jpg", L"*.jpg", OFN_HIDEREADONLY | OFN_NOCHANGEDIR, name_filter);
 	ins_dlg.m_ofn.nFilterIndex = 2;
 	
 	if (IDOK == ins_dlg.DoModal())
 	{
+		if (!m_image.IsNull()) m_image.Destroy();
+
 		m_image.Load(ins_dlg.GetPathName());
 		Invalidate(FALSE);
 	}
+}
+
+
+void CImageViewerDlg::OnSize(UINT nType, int cx, int cy)
+{
+	CDialogEx::OnSize(nType, cx, cy);
+
+	/*GetClientRect(m_rect);*/
+	m_rect.right = cx;
+	m_rect.bottom = cy;
+	Invalidate(FALSE);
 }
